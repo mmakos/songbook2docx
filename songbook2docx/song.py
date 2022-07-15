@@ -90,12 +90,13 @@ class Song:
         for i in range(len(columns[0].strings)):
             cells: list[StyledCell] = list()
             for col in columns:
+                col_strings = col.strings[i] if i < len(col.strings) else ""
                 if col.cell_type == CellType.TEXT or col.cell_type == CellType.OTHER:
-                    cells.append(SongText(col.strings[i]))
+                    cells.append(SongText(col_strings))
                 elif col.cell_type == CellType.REPETITION:
-                    cells.append(Repetition(col.strings[i]))
+                    cells.append(Repetition(col_strings))
                 elif col.cell_type == CellType.CHORD:
-                    cells.append(Chords(col.strings[i]))
+                    cells.append(Chords(col_strings))
             rows.append(Row(cells))
         return rows
 
