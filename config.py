@@ -26,6 +26,8 @@ def parse_config(filename) -> configparser.ConfigParser:
         general = CONFIG["general"]
         if "font-prefix" in general:
             wanted_font = "font-prefix"
+        if "show-author" in general:
+            show_author = get_as_boolean("show-author", general)
         tab_stops_offset = get_as_float("tab-stops-offset", general, tab_stops_offset)
 
     if "style-song-content" in CONFIG:
@@ -66,7 +68,7 @@ def get_font_size():
 
 
 def get_show_authors():
-    return font_size
+    return show_author
 
 
 def get_tab_stops_offset():
@@ -76,6 +78,7 @@ def get_tab_stops_offset():
 def get_as_boolean(name, conf):
     if name in conf:
         return conf[name] == "yes"
+    return False
 
 
 def get_as_float(name, conf, default) -> float:

@@ -124,7 +124,7 @@ class Song:
 
     def add_paragraphs_to_doc(self, doc: Document, tab_stops_offset: float, show_authors: bool):
         doc.add_paragraph(self.title, style=style_manager.get_style(style_manager.TITLE))
-        if show_authors:
+        if show_authors and len(self.authors) > 0:
             doc.add_paragraph(self.authors, style=style_manager.get_style(style_manager.AUTHOR))
         pars = list()
         cell_lengths: list[list[float]] = [[0.0 for _ in range(len(self.rows))] for _ in range(len(self.rows[0].cells))]  # dla każdej kolumny lista szerokości komórek wierszy
