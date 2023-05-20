@@ -6,31 +6,39 @@ from songbook2docx.styled.transposition import up_transposition_dict, down_trans
 addons_regex = r"( |(?<=[0-9](?=[0-9])))"
 
 HIDE_UNCOMMON_ADDED_INTERVAL = 1
-AUG_AND_DIM_GUITAR_MODE = 0b10
-DIVIDE_DELAYS = 0b100
-HIDE_INCOMPLETE_CHORDS = 0b1000
-SIMPLIFY_MULTIPLY = 0b10000
-SIMPLIFY_AUG_TO_GUITAR = 0b100000
-HIDE_BASE = 0b1000000
+AUG_AND_DIM_GUITAR_MODE = 1 << 1
+DIVIDE_DELAYS = 1 << 2
+HIDE_INCOMPLETE_CHORDS = 1 << 3
+SIMPLIFY_MULTIPLY = 1 << 4
+SIMPLIFY_AUG_TO_GUITAR = 1 << 5
+HIDE_BASE = 1 << 6
+HIDE_ALTERNATIVE_KEY_FLAG = 1 << 7
+HIDE_KEY_MARK_FLAG = 1 << 8
 
 
 class Chord:
-    def __init__(self, text: str, delimiter: str):
-        self.chord: str = Chord.__parse_chord(text)  # Fis, Ges itd
-        self.aug: str = Chord.__parse_aug(text)  # Rozszerzenie <, >
-        self.base: str = Chord.__parse_base(text)  # Podstawa 1, 3, 5
-        self.add: str = Chord.__parse_add(text)  # Dodane dźwięki 6, 7, 7<, 2 itd
+    def __init__(self, chord: str, aug: str, base: str, add: str, delimiter: str):
+        self.chord: str = chord     # Fis, Ges itd
+        self.aug: str = aug         # Rozszerzenie <, >
+        self.base: str = base       # Podstawa 1, 3, 5
+        self.add: str = add         # Dodane dźwięki 6, 7, 7<, 2 itd
         self.delimiter = delimiter
+
+    @staticmethod
+    def chord_from_text(text: str, delimiter: str):
+        return Chord(Chord.__parse_chord(text),
+                     Chord.__parse_aug(text),
+                     Chord.__parse_base(text),
+                     Chord.__parse_add(text),
+                     delimiter)
 
     def is_same_chord(self, chord):
         return self.chord == chord.chord and self.aug == chord.aug and self.base == chord.base and self.add == chord.add
 
     @staticmethod
     def __parse_chord(text: str) -> str:
-        end = text.find("<")
-        if end < 0:
-            end = text.find("&")
-        return text if end < 0 else text[:end]
+        match = re.search(r"[&<]", text)
+        return text if match is None else text[:match.start()]
 
     @staticmethod
     def __parse_base(text: str) -> str:
@@ -73,7 +81,10 @@ class Chord:
         chords = list()
         for i, addon in enumerate(addons):
             chord = copy.copy(self)
-            chord.add = addon
+            if len(addons) > 1 and addon in ('1', '3', '5', '8'):
+                chord.add = ''
+            else:
+                chord.add = addon
             chords.append(chord)
             if i < len(addons) - 1:
                 chord.delimiter = " "
