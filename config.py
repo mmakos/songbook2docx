@@ -9,6 +9,7 @@ TEMPLATE_PATH = "template/template.docx"
 DEFAULT_FONT = "verdana"
 wanted_font = DEFAULT_FONT
 font_size = 9.0
+show_author = True
 tab_stops_offset = 0.5
 INPUT_FILE_EXT = ".smm"
 INITIAL_OPEN_PATH = path.expanduser("")
@@ -17,7 +18,7 @@ CONFIG: configparser.ConfigParser
 
 
 def parse_config(filename) -> configparser.ConfigParser:
-    global wanted_font, CONFIG, font_size, tab_stops_offset
+    global wanted_font, CONFIG, font_size, tab_stops_offset, show_author
     CONFIG = configparser.ConfigParser()
     CONFIG.read(filename)
 
@@ -61,6 +62,10 @@ def get_wanted_font():
 
 
 def get_font_size():
+    return font_size
+
+
+def get_show_authors():
     return font_size
 
 

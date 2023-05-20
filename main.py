@@ -56,7 +56,7 @@ with gzip.open(input_file, "r") as file:
     for song in songs:
         song.apply_flags(get_chord_flags())
         song.transpose()
-        song.add_paragraphs_to_doc(doc, get_tab_stops_offset())
+        song.add_paragraphs_to_doc(doc, get_tab_stops_offset(), get_show_authors())
 
     filename = filedialog.asksaveasfilename(
         title="Zapisz śpiewnik jako",

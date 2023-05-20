@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='songbook2docx',
-    version='1.0.0',
+    version='1.1',
     packages=['songbook2docx', 'songbook2docx.utils', 'songbook2docx.styled'],
     url='https://spiewnik.mmakos.pl',
     license='',

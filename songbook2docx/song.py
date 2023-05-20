@@ -26,12 +26,14 @@ class Row:
 class Song:
     def __init__(self, html: et.Element):
         self.title: str
+        self.authors: str
         self.flags: int
         self.transposition: int
         self.rows: list[Row] = self.__parse_html(html)
 
     def __parse_html(self, html: et.Element) -> list[Row]:
         self.title = Song.__title_from_html(html)
+        self.authors = Song.__authors_from_html(html)
         self.flags = Song.__flags_from_html(html)
         self.transposition = Song.__transposition_from_html(html)
 
@@ -60,6 +62,14 @@ class Song:
         title_strings = get_from_tags(html, "h2")
         if len(title_strings) > 0:
             return title_strings[0].text
+        return ""
+
+    @staticmethod
+    def __authors_from_html(html: et.Element) -> str:
+        divs = html.iter("div")
+        for div in divs:
+            if div.attrib.get("class") == "author":
+                return ", ".join(div.itertext())
         return ""
 
     @staticmethod
@@ -112,8 +122,10 @@ class Song:
                 return CellType.REPETITION
         return CellType.OTHER
 
-    def add_paragraphs_to_doc(self, doc: Document, tab_stops_offset: float):
+    def add_paragraphs_to_doc(self, doc: Document, tab_stops_offset: float, show_authors: bool):
         doc.add_paragraph(self.title, style=style_manager.get_style(style_manager.TITLE))
+        if show_authors:
+            doc.add_paragraph(self.authors, style=style_manager.get_style(style_manager.AUTHOR))
         pars = list()
         cell_lengths: list[list[float]] = [[0.0 for _ in range(len(self.rows))] for _ in range(len(self.rows[0].cells))]  # dla każdej kolumny lista szerokości komórek wierszy
         for row_index, row in enumerate(self.rows):
