@@ -7,7 +7,7 @@ pip install .
 pyinstaller main.spec
 @RD /S /Q "build"
 
-mkdir "dist/fonts"
+robocopy "fonts" "dist/fonts"
 copy "conf.ini" "dist/conf.ini"
 
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\setup.iss"
