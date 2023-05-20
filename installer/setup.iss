@@ -16,13 +16,13 @@ DefaultDirName={autopf}\Songbook2docx
 ChangesAssociations=yes
 DefaultGroupName=Songbook to docx
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\licence.txt
+LicenseFile=..\licence.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\installer
+OutputDir=..\installer
 OutputBaseFilename=Songbook2docx
-SetupIconFile=C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\smm.ico
+SetupIconFile=..\smm.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -35,9 +35,9 @@ Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\dist\songbook2docx.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\dist\fonts"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\mmakos\PycharmProjects\Songbook-Online\html2docx\dist\conf.ini"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\songbook2docx.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\fonts"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\conf.ini"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

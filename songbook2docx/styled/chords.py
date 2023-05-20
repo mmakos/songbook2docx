@@ -9,21 +9,30 @@ from songbook2docx.styled.styled_cell import StyledCell
 from songbook2docx.utils import style_manager
 from songbook2docx.utils.styler import Styler
 
+from songbook2docx.styled.chord import HIDE_KEY_MARK_FLAG
+
 chord_delimiters = (
-    r"(?<!<)/",
-    r" ?\(\^",
-    r" \(|\) ",
-    r"(?<!>)\(",
-    r"\)(?!<)",
-    r"\|x[0-9]+",
-    r"[ \|]+",
-    r"… ?"
+    r"(?<!<)/",             # Oddziela slash, pod warunkiem, że nie jest to tag html </
+    r" ?\(\^",              # Oddziela podwyższenie tonacji z ewentualną spacją (^
+    r" \(|\) ",             # Oddziela nawias początkowy lub końcowy ze spacją
+    r"(?<!>)\(",            # Oddziela nawias początkowy, pod warunkiem, że nie ma przed nim końca tagu (wtedy jest to opcjonalny bas/interwał)
+    r"\)(?!<)",             # Oddziela nawias końcowy, pod warunkiem, że nie ma za nim tagu html (wtedy jest to koniec opcjonalnego basu/interwału)
+    r"\|x[0-9]+",           # Oddziela repetycję akordów
+    r"[ |]+(?![0-9])",      # Oddziela spacje i pionową kreskę, pod warunkiem, że za nią nie ma cyfr (wtedy jest to kolejny interwał, np. A2-1 4-3)
+    r"… ?"                  # Oddziela wielokropek (zapętlone akordy)
 )
 
 
 class Chords(StyledCell):
-    def __init__(self, html: str):
-        self.chords, self.key, self.styles = Chords.__parse_html(html)
+    def __init__(self, chords: list[Chord], key: str | None, styles: int):
+        self.chords = chords
+        self.key = key
+        self.styles = styles
+
+    @staticmethod
+    def chords_from_html(html: str):
+        chords, key, styles = Chords.__parse_html(html)
+        return Chords(chords, key, styles)
 
     @staticmethod
     def __parse_html(html: str) -> tuple[list[Chord], str | None, int]:
@@ -41,7 +50,7 @@ class Chords(StyledCell):
         chords_str: list[tuple[str, str]] = split_chords(f"({'|'.join(chord_delimiters)})", html)
         chords = list()
         for chord_str in chords_str:
-            chords.append(Chord(chord_str[0], chord_str[1]))
+            chords.append(Chord.chord_from_text(chord_str[0], chord_str[1]))
         return chords, key, styles
 
     @staticmethod
@@ -57,6 +66,8 @@ class Chords(StyledCell):
             chord.transpose(interval)
 
     def apply_flags(self, flags: int):
+        if flags & HIDE_KEY_MARK_FLAG > 0:
+            self.key = None
         proceeded_chords: list[Chord] = list()
         for chord in self.chords:
             proceeded_chords.extend(chord.apply_flags(flags))

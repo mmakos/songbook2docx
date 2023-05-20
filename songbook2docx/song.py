@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as et
 
-from docx import Document
 from docx.shared import Cm, Pt
 from docx.text.paragraph import Paragraph
-
+from songbook2docx.styled.chord import HIDE_ALTERNATIVE_KEY_FLAG
 from songbook2docx.styled.chords import Chords
 from songbook2docx.styled.repetition import Repetition
 from songbook2docx.styled.song_text import SongText
@@ -24,18 +23,23 @@ class Row:
 
 
 class Song:
-    def __init__(self, html: et.Element):
-        self.title: str
-        self.authors: str
-        self.flags: int
-        self.transposition: int
-        self.rows: list[Row] = self.__parse_html(html)
+    def __init__(self, html: et.Element = None):
+        self.title: str = ""
+        self.authors: str = ""
+        self.flags: int = 0
+        self.transposition: int = 0
+        self.rows: list[Row]
+        if html is not None:
+            self.rows: list[Row] = self.__parse_html(html)
 
-    def __parse_html(self, html: et.Element) -> list[Row]:
+    def parse_options(self, html: et.Element):
         self.title = Song.__title_from_html(html)
         self.authors = Song.__authors_from_html(html)
         self.flags = Song.__flags_from_html(html)
         self.transposition = Song.__transposition_from_html(html)
+
+    def __parse_html(self, html: et.Element) -> list[Row]:
+        self.parse_options(html)
 
         table_columns = Song.__columns_from_table([tr for tr in html.iter("tr")][0])
         columns: list[Column] = list()
@@ -106,7 +110,7 @@ class Song:
                 elif col.cell_type == CellType.REPETITION:
                     cells.append(Repetition(col_strings))
                 elif col.cell_type == CellType.CHORD:
-                    cells.append(Chords(col_strings))
+                    cells.append(Chords.chords_from_html(col_strings))
             rows.append(Row(cells))
         return rows
 
@@ -122,14 +126,14 @@ class Song:
                 return CellType.REPETITION
         return CellType.OTHER
 
-    def add_paragraphs_to_doc(self, doc: Document, tab_stops_offset: float, show_authors: bool):
-        doc.add_paragraph(self.title, style=style_manager.get_style(style_manager.TITLE))
+    def add_paragraphs_to_doc(self, content_par: Paragraph, tab_stops_offset: float, show_authors: bool):
+        content_par.insert_paragraph_before(self.title, style=style_manager.get_style(style_manager.TITLE))
         if show_authors and len(self.authors) > 0:
-            doc.add_paragraph(self.authors, style=style_manager.get_style(style_manager.AUTHOR))
+            content_par.insert_paragraph_before(self.authors, style=style_manager.get_style(style_manager.AUTHOR))
         pars = list()
         cell_lengths: list[list[float]] = [[0.0 for _ in range(len(self.rows))] for _ in range(len(self.rows[0].cells))]  # dla każdej kolumny lista szerokości komórek wierszy
         for row_index, row in enumerate(self.rows):
-            par: Paragraph = doc.add_paragraph(style=style_manager.get_style(style_manager.SONG))
+            par: Paragraph = content_par.insert_paragraph_before(style=style_manager.get_style(style_manager.SONG))
             pars.append(par)
 
             for i, cell in enumerate(row.cells):
@@ -145,7 +149,10 @@ class Song:
                     tab_run.add_tab()
 
         for i in range(len(cell_lengths) - 1):
-            max_width = max([w for w, z in zip(cell_lengths[i], cell_lengths[i + 1]) if z > 0])
+            widths = [w for w, z in zip(cell_lengths[i], cell_lengths[i + 1]) if z > 0]
+            max_width = 0.0001
+            if len(widths) > 0:
+                max_width = max(widths)
 
             tab_stop_added = False
             for j, par in enumerate(pars):
@@ -163,10 +170,30 @@ class Song:
                     cell.transpose(self.transposition)
 
     def apply_flags(self, global_flags: int):
+        flags = self.flags | global_flags
+        if len(self.rows) <= 0:
+            return
+        if flags & HIDE_ALTERNATIVE_KEY_FLAG > 0:
+            self.__remove_alternative_chords()
+
         for row in self.rows:
             for cell in row.cells:
                 if type(cell) == Chords:
-                    cell.apply_flags(self.flags | global_flags)
+                    cell.apply_flags(flags)
+
+    def __remove_alternative_chords(self):
+        chord_lines = [0 if type(cell) == Chords else -1 for cell in self.rows[0].cells]  # lista przechowuje ilość faktycznych linii akordów w każdej kolumnie
+        first_chord_column_idx = chord_lines.index(0)
+        if len([c for c in chord_lines if c == 0]) > 1:
+            for row in self.rows:
+                for i, cell in enumerate(row.cells):
+                    if type(cell) == Chords:
+                        if len(cell.chords) > 0:
+                            chord_lines[i] += 1
+            for i in range(first_chord_column_idx + 1, len(chord_lines)):
+                if chord_lines[i] > 0.9 * chord_lines[first_chord_column_idx]:
+                    for row in self.rows:
+                        row.cells.pop(i)
 
 
 def get_from_tags(html: et.Element, tag: str) -> list[et.Element]:
