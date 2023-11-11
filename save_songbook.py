@@ -108,7 +108,7 @@ def params_to_config(params: dict) -> dict:
 
     style_song = config["style-song-content"]
     set_if_present(style_song, params, "font-size")
-    set_if_present(style_song, params, "font-family", "font-name")
+    set_if_present(style_song, params, "font-family")
     style_song["font-bold"] = convert_boolean(params, "text-style-bold")
     style_song["font-italic"] = convert_boolean(params, "text-style-italic")
 
@@ -134,11 +134,11 @@ def convert_boolean(params: dict, key: str) -> str:
     return 'yes' if len(value) > 0 and value[0] == 'on' else 'no'
 
 
-def set_if_present(config: dict, params: dict, params_key: str, config_key=None):
-    if params_key in params:
-        value = params[params_key]
+def set_if_present(config: dict, params: dict, key: str):
+    if key in params:
+        value = params[key]
         if len(value) > 0:
-            config[config_key if config_key is not None else params_key] = value[0]
+            config[key] = value[0]
 
 
 def init_dict_if_absent(config: dict, key: str):

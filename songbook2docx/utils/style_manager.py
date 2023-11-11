@@ -53,8 +53,8 @@ class StyleManager:
                     key_style.font.size = font_size_length
                 except:
                     pass
-            if "font-name" in style_song_content:
-                font_name = style_song_content["font-name"]
+            if "font-family" in style_song_content:
+                font_name = get_font_family(style_song_content["font-family"])
                 song_style.font.name = font_name
                 chords_style.font.name = font_name
                 repetition_style.font.name = font_name
@@ -76,3 +76,27 @@ class StyleManager:
             style_key = config["style-key"]
             set_font_bold(key_style.font, style_key)
             set_font_italic(key_style.font, style_key)
+
+
+def get_font_family(name: str) -> str:
+    if name == "verdana":
+        return "Verdana"
+    if name == "arial":
+        return "Arial"
+    if name == "times":
+        return "Times New Roman"
+    if name == "georgia":
+        return "Georgia"
+    if name == "calibri":
+        return "Calibri"
+    if name == "cambria":
+        return "Cambria"
+    if name == "candara":
+        return "Candara"
+    if name == "comic":
+        return "Comic Sans MS"
+    if name == "consola":
+        return "Consolas"
+    if name == "cour":
+        return 'Courier New'
+    return "Verdana"

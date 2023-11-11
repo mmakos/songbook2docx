@@ -26,8 +26,6 @@ class Config:
     def parse_main_cfg(self, dictionary: dict):
         if "general" in dictionary:
             general = dictionary["general"]
-            if "font-family" in general:
-                self.wanted_font = general["font-family"].lower()
             if "show-author" in general:
                 self.show_author = get_as_boolean("show-author", general)
             self.tab_stops_offset = get_as_float("tab-stops-offset", general, self.tab_stops_offset)
@@ -35,6 +33,8 @@ class Config:
         if "style-song-content" in dictionary:
             style_song_content = dictionary["style-song-content"]
             self.font_size = get_as_float("font-size", style_song_content, self.font_size)
+            if "font-family" in style_song_content:
+                self.wanted_font = style_song_content["font-family"].lower()
 
     def get_chord_flags(self) -> int:
         flags = 0
