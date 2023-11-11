@@ -14,7 +14,7 @@ CHORDS = "Akordy"
 KEY = "Tonacja"
 
 
-def init(doc: Document, config: ConfigParser):
+def init(doc: Document, config: dict):
     global document
     document = doc
     __parse_config_styles(config)
@@ -27,7 +27,7 @@ def get_style(style: str) -> BaseStyle | None:
         return None
 
 
-def __parse_config_styles(config: ConfigParser):
+def __parse_config_styles(config: dict):
     song_style = get_style(SONG)
     chords_style = get_style(CHORDS)
     repetition_style = get_style(REPETITION)
