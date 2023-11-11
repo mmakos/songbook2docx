@@ -4,7 +4,7 @@ from fontTools.ttLib import TTFont
 
 class TextWidthProvider:
     def __init__(self, path: str, wanted_prefix: str, default_prefix: str, font_size_pt: int):
-        self.font_params = {suffix: self.__get_font_params(path, wanted_prefix, suffix, default_prefix) for suffix in ("", "i", "b", "z")}
+        self.font_params = {suffix: self.__get_font_params(path, wanted_prefix, suffix, default_prefix) for suffix in ("", "i", "b", "bi")}
         self.font_size = font_size_pt
 
     def get_text_width(self, runs: list[Run]) -> float:
@@ -38,7 +38,7 @@ class TextWidthProvider:
     def __get_text_width_for_run(self, run: Run) -> float:
         font = ""
         if (run.bold or run.style.font.bold) and (run.italic or run.style.font.italic):
-            font = "z"
+            font = "bi"
         elif run.italic or run.style.font.italic:
             font = "i"
         elif run.bold or run.style.font.bold:
