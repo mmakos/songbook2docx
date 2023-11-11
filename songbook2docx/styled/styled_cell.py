@@ -2,6 +2,8 @@ import abc
 from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 
+from songbook2docx.utils.style_manager import StyleManager
+
 
 class StyledCell(metaclass=abc.ABCMeta):
     @classmethod
@@ -11,5 +13,5 @@ class StyledCell(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def add_runs_to_paragraph(self, par: Paragraph) -> list[Run]:
+    def add_runs_to_paragraph(self, par: Paragraph, style_manager: StyleManager) -> list[Run]:
         raise NotImplementedError

@@ -1,78 +1,71 @@
 import configparser
 from os import path
 
-from songbook2docx.styled.chord import HIDE_UNCOMMON_ADDED_INTERVAL, AUG_AND_DIM_GUITAR_MODE, DIVIDE_DELAYS, HIDE_INCOMPLETE_CHORDS, SIMPLIFY_MULTIPLY, SIMPLIFY_AUG_TO_GUITAR, HIDE_BASE
+from songbook2docx.styled.chord import HIDE_UNCOMMON_ADDED_INTERVAL, AUG_AND_DIM_GUITAR_MODE, DIVIDE_DELAYS, \
+    HIDE_INCOMPLETE_CHORDS, SIMPLIFY_MULTIPLY, SIMPLIFY_AUG_TO_GUITAR, HIDE_BASE, HIDE_ALTERNATIVE_KEY_FLAG, HIDE_KEY_MARK_FLAG
 
 # DEFAULTS
 
 TEMPLATE_PATH = "template/template.docx"
 DEFAULT_FONT = "verdana"
-wanted_font = DEFAULT_FONT
-font_size = 9.0
-show_author = True
-tab_stops_offset = 0.5
 INPUT_FILE_EXT = ".smm"
 INITIAL_OPEN_PATH = path.expanduser("")
 
-CONFIG: configparser.ConfigParser
+CONFIG: dict
 
 
-def parse_config(filename) -> configparser.ConfigParser:
-    global wanted_font, CONFIG, font_size, tab_stops_offset, show_author
-    CONFIG = configparser.ConfigParser()
-    CONFIG.read(filename)
+class Config:
+    def __init__(self, config: dict):
+        self.wanted_font = DEFAULT_FONT
+        self.font_size = 9.0
+        self.show_author = True
+        self.tab_stops_offset = 0.5
+        self.config = config
+        self.parse_main_cfg(config)
 
-    if "general" in CONFIG:
-        general = CONFIG["general"]
-        if "font-prefix" in general:
-            wanted_font = "font-prefix"
-        if "show-author" in general:
-            show_author = get_as_boolean("show-author", general)
-        tab_stops_offset = get_as_float("tab-stops-offset", general, tab_stops_offset)
+    def parse_main_cfg(self, dictionary: dict):
+        if "general" in dictionary:
+            general = dictionary["general"]
+            if "show-author" in general:
+                self.show_author = get_as_boolean("show-author", general)
+            self.tab_stops_offset = get_as_float("tab-stops-offset", general, self.tab_stops_offset)
 
-    if "style-song-content" in CONFIG:
-        style_song_content = CONFIG["style-song-content"]
-        font_size = get_as_float("font-size", style_song_content, font_size)
+        if "style-song-content" in dictionary:
+            style_song_content = dictionary["style-song-content"]
+            self.font_size = get_as_float("font-size", style_song_content, self.font_size)
+            if "font-family" in style_song_content:
+                self.wanted_font = style_song_content["font-family"].lower()
 
-    return CONFIG
+    def get_chord_flags(self) -> int:
+        flags = 0
+        if "chord-flags" in self.config:
+            chord_flags = self.config["chord-flags"]
+            if get_as_boolean("hide-uncommon-added-interval", chord_flags):
+                flags |= HIDE_UNCOMMON_ADDED_INTERVAL
+            if get_as_boolean("aug-and-dim-guitar-mode", chord_flags):
+                flags |= AUG_AND_DIM_GUITAR_MODE
+            if get_as_boolean("divide-delays", chord_flags):
+                flags |= DIVIDE_DELAYS
+            if get_as_boolean("hide-incomplete-chords", chord_flags):
+                flags |= HIDE_INCOMPLETE_CHORDS
+            if get_as_boolean("simplify-multiply", chord_flags):
+                flags |= SIMPLIFY_MULTIPLY
+            if get_as_boolean("simplify-aug-to-guitar", chord_flags):
+                flags |= SIMPLIFY_AUG_TO_GUITAR
+            if get_as_boolean("hide-base", chord_flags):
+                flags |= HIDE_BASE
+            if get_as_boolean("hide-alternative-key-flag", chord_flags):
+                flags |= HIDE_ALTERNATIVE_KEY_FLAG
+            if get_as_boolean("hide-key-mark-flag", chord_flags):
+                flags |= HIDE_KEY_MARK_FLAG
 
-
-def get_chord_flags() -> int:
-    flags = 0
-    if "chord-flags" in CONFIG:
-        chord_flags = CONFIG["chord-flags"]
-        if get_as_boolean("hide-uncommon-added-interval", chord_flags):
-            flags |= HIDE_UNCOMMON_ADDED_INTERVAL
-        if get_as_boolean("aug-and-dim-guitar-mode", chord_flags):
-            flags |= AUG_AND_DIM_GUITAR_MODE
-        if get_as_boolean("divide-delays", chord_flags):
-            flags |= DIVIDE_DELAYS
-        if get_as_boolean("hide-incomplete-chords", chord_flags):
-            flags |= HIDE_INCOMPLETE_CHORDS
-        if get_as_boolean("simplify-multiply", chord_flags):
-            flags |= SIMPLIFY_MULTIPLY
-        if get_as_boolean("simplify-aug-to-guitar", chord_flags):
-            flags |= SIMPLIFY_AUG_TO_GUITAR
-        if get_as_boolean("hide-base", chord_flags):
-            flags |= HIDE_BASE
-
-    return flags
-
-
-def get_wanted_font():
-    return wanted_font
-
-
-def get_font_size():
-    return font_size
+        return flags
 
 
-def get_show_authors():
-    return show_author
-
-
-def get_tab_stops_offset():
-    return tab_stops_offset
+def parse_config(filename) -> dict:
+    config = configparser.ConfigParser()
+    config.read(filename)
+    return {s: dict(config.items(s)) for s in config.sections()}
 
 
 def get_as_boolean(name, conf):

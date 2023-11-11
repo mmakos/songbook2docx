@@ -2,13 +2,14 @@ import xml.etree.ElementTree as et
 
 from docx.shared import Cm, Pt
 from docx.text.paragraph import Paragraph
+
 from songbook2docx.styled.chord import HIDE_ALTERNATIVE_KEY_FLAG
 from songbook2docx.styled.chords import Chords
 from songbook2docx.styled.repetition import Repetition
 from songbook2docx.styled.song_text import SongText
 from songbook2docx.styled.styled_cell import StyledCell
-from songbook2docx.utils import style_manager
-from songbook2docx.utils.text_width_provider import get_text_width
+from songbook2docx.utils.style_manager import StyleManager, TITLE, AUTHOR, SONG
+from songbook2docx.utils.text_width_provider import TextWidthProvider
 
 
 class Column:
@@ -51,11 +52,11 @@ class Song:
     @staticmethod
     def __rows_from_column(column: et.Element) -> list[str]:
         return [et.tostring(m, encoding="unicode").replace("<span>", "")
-                    .replace("</span>", "")
-                    .replace("<br />", "")
-                    .replace("<br>", "")
-                    .replace("<emsp />", "\t")
-                    .replace("\t\t", "\t") for m in get_from_tags(column, "span")]
+                .replace("</span>", "")
+                .replace("<br />", "")
+                .replace("<br>", "")
+                .replace("<emsp />", "\t")
+                .replace("\t\t", "\t") for m in get_from_tags(column, "span")]
 
     @staticmethod
     def __columns_from_table(html: et.Element) -> list[et.Element]:
@@ -126,21 +127,23 @@ class Song:
                 return CellType.REPETITION
         return CellType.OTHER
 
-    def add_paragraphs_to_doc(self, content_par: Paragraph, tab_stops_offset: float, show_authors: bool):
-        content_par.insert_paragraph_before(self.title, style=style_manager.get_style(style_manager.TITLE))
+    def add_paragraphs_to_doc(self, content_par: Paragraph, tab_stops_offset: float, show_authors: bool, style_manager: StyleManager,
+                              text_width_provider: TextWidthProvider):
+        content_par.insert_paragraph_before(self.title, style=style_manager.get_style(TITLE))
         if show_authors and len(self.authors) > 0:
-            content_par.insert_paragraph_before(self.authors, style=style_manager.get_style(style_manager.AUTHOR))
+            content_par.insert_paragraph_before(self.authors, style=style_manager.get_style(AUTHOR))
         pars = list()
-        cell_lengths: list[list[float]] = [[0.0 for _ in range(len(self.rows))] for _ in range(len(self.rows[0].cells))]  # dla każdej kolumny lista szerokości komórek wierszy
+        # dla każdej kolumny lista szerokości komórek wierszy
+        cell_lengths: list[list[float]] = [[0.0 for _ in range(len(self.rows))] for _ in range(len(self.rows[0].cells))]
         for row_index, row in enumerate(self.rows):
-            par: Paragraph = content_par.insert_paragraph_before(style=style_manager.get_style(style_manager.SONG))
+            par: Paragraph = content_par.insert_paragraph_before(style=style_manager.get_style(SONG))
             pars.append(par)
 
             for i, cell in enumerate(row.cells):
-                added_runs = cell.add_runs_to_paragraph(par)
+                added_runs = cell.add_runs_to_paragraph(par, style_manager)
                 width = 0
                 if any(run.text for run in added_runs):
-                    width = get_text_width(added_runs) + Cm(tab_stops_offset).pt
+                    width = text_width_provider.get_text_width(added_runs) + Cm(tab_stops_offset).pt
                     if i == 0 and par.paragraph_format.left_indent:
                         width += par.paragraph_format.left_indent.pt
                 cell_lengths[i][row_index] = width
