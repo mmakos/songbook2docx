@@ -12,6 +12,8 @@ from songbook2docx.parser import parse_html
 from songbook2docx.song import Song
 from songbook2docx.utils import style_manager
 from songbook2docx.utils import text_width_provider
+from songbook2docx.utils.style_manager import StyleManager
+from songbook2docx.utils.text_width_provider import TextWidthProvider
 
 
 def exit_with_message(message: str, code: int):
@@ -52,15 +54,15 @@ with gzip.open(input_file, "r") as file:
 
     songs: list[Song] = parse_html(file.read().decode("UTF-8"))
 
-    style_manager.init(doc, config.config)
-    text_width_provider.init_fonts(path.join(project_path, "fonts"), config.wanted_font, DEFAULT_FONT, config.font_size)
+    style_manager = StyleManager(doc, config.config)
+    text_width_provider = TextWidthProvider(path.join(project_path, "fonts"), config.wanted_font, DEFAULT_FONT, config.font_size)
 
     content_par = [par for par in doc.paragraphs if "SongbookContent" in par.text][0]
 
     for song in songs:
         song.apply_flags(config.get_chord_flags())
         song.transpose()
-        song.add_paragraphs_to_doc(content_par, config.tab_stops_offset, config.show_author)
+        song.add_paragraphs_to_doc(content_par, config.tab_stops_offset, config.show_author, style_manager, text_width_provider)
 
     content_el = content_par._element
     content_el.getparent().remove(content_el)

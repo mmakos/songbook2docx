@@ -2,7 +2,7 @@ import configparser
 from os import path
 
 from songbook2docx.styled.chord import HIDE_UNCOMMON_ADDED_INTERVAL, AUG_AND_DIM_GUITAR_MODE, DIVIDE_DELAYS, \
-    HIDE_INCOMPLETE_CHORDS, SIMPLIFY_MULTIPLY, SIMPLIFY_AUG_TO_GUITAR, HIDE_BASE
+    HIDE_INCOMPLETE_CHORDS, SIMPLIFY_MULTIPLY, SIMPLIFY_AUG_TO_GUITAR, HIDE_BASE, HIDE_ALTERNATIVE_KEY_FLAG, HIDE_KEY_MARK_FLAG
 
 # DEFAULTS
 
@@ -26,8 +26,8 @@ class Config:
     def parse_main_cfg(self, dictionary: dict):
         if "general" in dictionary:
             general = dictionary["general"]
-            if "font-prefix" in general:
-                self.wanted_font = "font-prefix"
+            if "font-family" in general:
+                self.wanted_font = general["font-family"].lower()
             if "show-author" in general:
                 self.show_author = get_as_boolean("show-author", general)
             self.tab_stops_offset = get_as_float("tab-stops-offset", general, self.tab_stops_offset)
@@ -54,6 +54,10 @@ class Config:
                 flags |= SIMPLIFY_AUG_TO_GUITAR
             if get_as_boolean("hide-base", chord_flags):
                 flags |= HIDE_BASE
+            if get_as_boolean("hide-alternative-key-flag", chord_flags):
+                flags |= HIDE_ALTERNATIVE_KEY_FLAG
+            if get_as_boolean("hide-key-mark-flag", chord_flags):
+                flags |= HIDE_KEY_MARK_FLAG
 
         return flags
 

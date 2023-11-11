@@ -5,21 +5,20 @@ from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 
 from songbook2docx.styled.chord import Chord
+from songbook2docx.styled.chord import HIDE_KEY_MARK_FLAG
 from songbook2docx.styled.styled_cell import StyledCell
-from songbook2docx.utils import style_manager
+from songbook2docx.utils.style_manager import StyleManager, KEY, CHORDS
 from songbook2docx.utils.styler import Styler
 
-from songbook2docx.styled.chord import HIDE_KEY_MARK_FLAG
-
 chord_delimiters = (
-    r"(?<!<)/",             # Oddziela slash, pod warunkiem, że nie jest to tag html </
-    r" ?\(\^",              # Oddziela podwyższenie tonacji z ewentualną spacją (^
-    r" \(|\) ",             # Oddziela nawias początkowy lub końcowy ze spacją
-    r"(?<!>)\(",            # Oddziela nawias początkowy, pod warunkiem, że nie ma przed nim końca tagu (wtedy jest to opcjonalny bas/interwał)
-    r"\)(?!<)",             # Oddziela nawias końcowy, pod warunkiem, że nie ma za nim tagu html (wtedy jest to koniec opcjonalnego basu/interwału)
-    r"\|x[0-9]+",           # Oddziela repetycję akordów
-    r"[ |]+(?![0-9])",      # Oddziela spacje i pionową kreskę, pod warunkiem, że za nią nie ma cyfr (wtedy jest to kolejny interwał, np. A2-1 4-3)
-    r"… ?"                  # Oddziela wielokropek (zapętlone akordy)
+    r"(?<!<)/",  # Oddziela slash, pod warunkiem, że nie jest to tag html </
+    r" ?\(\^",  # Oddziela podwyższenie tonacji z ewentualną spacją (^
+    r" \(|\) ",  # Oddziela nawias początkowy lub końcowy ze spacją
+    r"(?<!>)\(",  # Oddziela nawias początkowy, pod warunkiem, że nie ma przed nim końca tagu (wtedy jest to opcjonalny bas/interwał)
+    r"\)(?!<)",  # Oddziela nawias końcowy, pod warunkiem, że nie ma za nim tagu html (wtedy jest to koniec opcjonalnego basu/interwału)
+    r"\|x[0-9]+",  # Oddziela repetycję akordów
+    r"[ |]+(?![0-9])",  # Oddziela spacje i pionową kreskę, pod warunkiem, że za nią nie ma cyfr (wtedy jest to kolejny interwał, np. A2-1 4-3)
+    r"… ?"  # Oddziela wielokropek (zapętlone akordy)
 )
 
 
@@ -43,6 +42,9 @@ class Chords(StyledCell):
             key = html[:chords_start].strip()
             if not key.strip().startswith("<i><b>"):
                 key = None
+            else:
+                key = key.replace("<i><b>", "")
+                key = key.replace("</b></i>", "")
         html = html[chords_start:]
 
         html = html.replace("""<b class="chord">""", "").replace("</b>", "")
@@ -79,16 +81,16 @@ class Chords(StyledCell):
             distinct_chords.append(proceeded_chords[-1])
         self.chords = distinct_chords
 
-    def add_runs_to_paragraph(self, par: Paragraph) -> list[Run]:
+    def add_runs_to_paragraph(self, par: Paragraph, style_manager: StyleManager) -> list[Run]:
         runs = list()
         if self.key is not None:
             styled_keys = Styler.style_text(self.key)
             for key in styled_keys:
-                run = par.add_run(key[0], style_manager.get_style(style_manager.KEY))
+                run = par.add_run(key[0], style_manager.get_style(KEY))
                 Styler.style_run(run, key[1])
                 runs.append(run)
         if len(self.chords) > 0:
-            chord_style = style_manager.get_style(style_manager.CHORDS)
+            chord_style = style_manager.get_style(CHORDS)
             if self.key is not None:
                 runs.append(par.add_run(" ", chord_style))
             for chord in self.chords:
