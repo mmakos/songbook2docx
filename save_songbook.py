@@ -94,7 +94,6 @@ def params_to_config(params: dict) -> dict:
     general = config["general"]
     general["show-author"] = convert_boolean(params, "show-author")
     set_if_present(general, params, "tab-stops-offset")
-    set_if_present(general, params, "font-size")
 
     chord_flags = config["chord-flags"]
     chord_flags["hide-uncommon-added-interval"] = convert_boolean(params, "hide-uncommon-added-interval")
@@ -104,6 +103,8 @@ def params_to_config(params: dict) -> dict:
     chord_flags["simplify-multiply"] = convert_boolean(params, "simplify-multiply")
     chord_flags["simplify-aug-to-guitar"] = convert_boolean(params, "simplify-aug-to-guitar")
     chord_flags["hide-base"] = convert_boolean(params, "hide-base")
+    chord_flags["hide-alternative-key-flag"] = convert_boolean(params, "hide-alternative-key-flag")
+    chord_flags["hide-key-mark-flag"] = convert_boolean(params, "hide-key-mark-flag")
 
     style_song = config["style-song-content"]
     set_if_present(style_song, params, "font-size")

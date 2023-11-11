@@ -21,6 +21,7 @@ class Config:
         self.show_author = True
         self.tab_stops_offset = 0.5
         self.config = config
+        self.parse_main_cfg(config)
 
     def parse_main_cfg(self, dictionary: dict):
         if "general" in dictionary:
