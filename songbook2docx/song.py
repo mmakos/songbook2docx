@@ -196,7 +196,8 @@ class Song:
             for i in range(first_chord_column_idx + 1, len(chord_lines)):
                 if chord_lines[i] > 0.9 * chord_lines[first_chord_column_idx]:
                     for row in self.rows:
-                        row.cells.pop(i)
+                        # Pop at the same position always, because in next iteration it will be shifted
+                        row.cells.pop(first_chord_column_idx + 1)
 
 
 def get_from_tags(html: et.Element, tag: str) -> list[et.Element]:
